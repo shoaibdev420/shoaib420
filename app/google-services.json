@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "236880283928",
+    "project_id": "ludostealth",
+    "storage_bucket": "ludostealth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:236880283928:android:c2764316ea6fc8d067b66d",
+        "android_client_info": {
+          "package_name": "com.example.ludostealth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBR2uajLZly8IeatvHdMSgESSzQ_xS02_4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
