@@ -67,7 +67,8 @@ fun WhatsAppHomeScreen(
     onOpenCamera: () -> Unit,
     onBack: () -> Unit,
     onSendMessageClick: ()-> Unit,
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    onChatClick: (Map<String, String>) -> Unit
 ) {
     BackHandler {
         onBack()
@@ -208,7 +209,9 @@ fun WhatsAppHomeScreen(
             ) {
                 when (selectedTab) {
                     HomeTab.CHATS -> {
-                        ChatsTabContent()
+                        ChatsTabContent(
+                            onChatClick = onChatClick
+                        )
                     }
 
                     HomeTab.UPDATES -> {
@@ -329,7 +332,9 @@ fun WhatsAppHomeScreen(
     }
 }
 @Composable
-private fun ChatsTabContent() {
+private fun ChatsTabContent(
+    onChatClick: (Map<String, String>) -> Unit
+) {
 
     val chatList = remember { mutableStateListOf<Map<String, String>>() }
 
@@ -350,12 +355,36 @@ private fun ChatsTabContent() {
 
                     for (doc in result.documents) {
 
-                        val data = mapOf(
-                            "name" to (doc.getString("name") ?: ""),
-                            "lastMessage" to (doc.getString("lastMessage") ?: "")
-                        )
+                        val otherUid = doc.getString("uid") ?: ""
 
-                        chatList.add(data)
+                        FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(currentUser.uid)
+                            .collection("contacts")
+                            .whereEqualTo("uid", otherUid)
+                            .get()
+                            .addOnSuccessListener { contactResult ->
+
+                                var contactName = "Unknown"
+
+                                if (!contactResult.isEmpty) {
+
+                                    val contactDoc = contactResult.documents[0]
+
+                                    contactName =
+                                        (contactDoc.getString("firstName") ?: "") +
+                                                " " +
+                                                (contactDoc.getString("lastName") ?: "")
+                                }
+
+                                val data = mapOf(
+                                    "uid" to otherUid,
+                                    "firstName" to contactName.trim(),
+                                    "lastMessage" to (doc.getString("lastMessage") ?: "")
+                                )
+
+                                chatList.add(data)
+                            }
                     }
                 }
         }
@@ -401,6 +430,10 @@ private fun ChatsTabContent() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable {
+
+                            onChatClick(chat)
+                        }
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -414,7 +447,7 @@ private fun ChatsTabContent() {
                     ) {
 
                         Text(
-                            text = chat["name"]?.take(1) ?: "",
+                            text = chat["firstName"]?.take(1) ?: "",
                             color = Color.White,
                             fontSize = 20.sp
                         )
@@ -426,7 +459,7 @@ private fun ChatsTabContent() {
                     ) {
 
                         Text(
-                            text = chat["name"] ?: "",
+                            text = chat["firstName"] ?: "",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = WaDark

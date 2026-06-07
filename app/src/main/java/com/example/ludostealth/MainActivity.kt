@@ -276,6 +276,11 @@ class MainActivity : ComponentActivity() {
 
                         onOpenSettings = {
                             screen = Screen.SETTINGS
+                        },
+                        onChatClick = { chat ->
+
+                            selectedContact = chat
+                            screen = Screen.CHAT_SCREEN
                         }
                     )
                 }
@@ -323,13 +328,13 @@ class MainActivity : ComponentActivity() {
                 Screen.CHAT_SCREEN -> {
 
                     ChatScreen(
-
-                        name = selectedContact?.get("firstName") ?: "User",
-
+                        name = selectedContact?.get("firstName")
+                            ?: selectedContact?.get("name")
+                            ?: "User",
                         receiverId = selectedContact?.get("uid") ?: "",
 
                         onBack = {
-                            screen = Screen.NEW_CHAT
+                            screen = Screen.WHATSAPP_HOME
                         }
                     )
                 }

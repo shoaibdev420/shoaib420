@@ -281,26 +281,40 @@ fun ChatScreen(
 
                                     // WhatsApp Home Chat Update
                                     val chatSummary = hashMapOf(
-                                        "contactUid" to receiverId,
+                                        "uid" to receiverId,
                                         "name" to name,
                                         "lastMessage" to msg.text,
                                         "timestamp" to msg.timestamp
                                     )
 
                                     // Sender side
+                                    val senderChat = hashMapOf(
+                                        "uid" to receiverId,
+                                        "name" to name,
+                                        "lastMessage" to msg.text,
+                                        "timestamp" to msg.timestamp
+                                    )
+
                                     db.collection("users")
                                         .document(currentUser!!.uid)
                                         .collection("chats")
                                         .document(receiverId)
-                                        .set(chatSummary)
+                                        .set(senderChat)
 
-                                    // Receiver side
+
+// Receiver side
+                                    val receiverChat = hashMapOf(
+                                        "uid" to currentUser.uid,
+                                        "name" to (currentUser.displayName ?: "User"),
+                                        "lastMessage" to msg.text,
+                                        "timestamp" to msg.timestamp
+                                    )
+
                                     db.collection("users")
                                         .document(receiverId)
                                         .collection("chats")
                                         .document(currentUser.uid)
-                                        .set(chatSummary)
-
+                                        .set(receiverChat)
                                 }
                                 .addOnFailureListener { e ->
 
