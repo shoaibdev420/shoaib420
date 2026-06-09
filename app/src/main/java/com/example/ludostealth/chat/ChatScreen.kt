@@ -69,12 +69,52 @@ fun ChatScreen(
                         val msg = doc.toObject(Message::class.java)
 
                         if (msg != null) {
+
                             messages.add(msg)
+
+                            if (
+                                msg.receiverId == currentUser?.uid &&
+                                msg.status == "delivered"
+                            ) {
+
+                                doc.reference.update(
+                                    "status",
+                                    "seen"
+                                )
+                            }
                         }
                     }
                 }
             }
     }
+    LaunchedEffect(messages.size) {
+
+        messages.forEach { msg ->
+
+            if (
+                msg.receiverId == currentUser?.uid &&
+                msg.status == "sent"
+            ) {
+
+                db.collection("chats")
+                    .document(chatId)
+                    .collection("messages")
+                    .whereEqualTo("timestamp", msg.timestamp)
+                    .get()
+                    .addOnSuccessListener { docs ->
+
+                        for (doc in docs) {
+
+                            doc.reference.update(
+                                "status",
+                                "delivered"
+                            )
+                        }
+                    }
+            }
+        }
+    }
+
     var showMenu by remember { mutableStateOf(false) }
 
     Column(
@@ -183,10 +223,19 @@ fun ChatScreen(
                             )
 
                             if (msg.senderId == currentUser?.uid) {
+
+                                val tickIcon =
+                                    if (msg.status == "sent") Icons.Default.Done
+                                    else Icons.Default.DoneAll
+
+                                val tickColor =
+                                    if (msg.status == "seen") Color.Blue
+                                    else Color.Gray
+
                                 Icon(
-                                    Icons.Default.DoneAll,
+                                    imageVector = tickIcon,
                                     contentDescription = "",
-                                    tint = Color.Blue,
+                                    tint = tickColor,
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
@@ -267,7 +316,8 @@ fun ChatScreen(
                                 senderId = currentUser?.uid ?: "",
                                 receiverId = receiverId,
                                 text = messageText,
-                                timestamp = System.currentTimeMillis()
+                                timestamp = System.currentTimeMillis(),
+                                status = "sent"
                             )
 
                             db.collection("chats")
